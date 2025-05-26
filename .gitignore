@@ -1,11 +1,51 @@
-# Node modules
+# Root-level dependencies
 node_modules/
-client/node_modules/
-server/node_modules/
-
-# Build files
-client/build/
-dist/
-
-# Environment files
 .env
+.DS_Store
+*.log
+
+# Ignore all node_modules recursively
+**/node_modules/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build and dist folders
+dist/
+build/
+
+# React/Vite-specific
+client/.vite/
+client/dist/
+client/.env
+client/.env.local
+client/.env.*.local
+
+# VS Code settings
+.vscode/
+
+# OS specific
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Misc
+*.swp
+*.swo
+
+# Ignore coverage reports
+coverage/
+*.lcov
+
+# MongoDB dump folders (optional)
+dump/
+
+# Ignore server environment files
+server/.env
+server/.env.local
+
+# JetBrains IDEs (WebStorm, IntelliJ)
+.idea/
