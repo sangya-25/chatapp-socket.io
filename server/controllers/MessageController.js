@@ -4,24 +4,24 @@ import User from "../models/User.js";
 import { io, userSocketMap } from "../server.js";
 
 //Get all users except the logged in user
-export const getUserForSidebar= async ()=>{
-    try{
-        const userId=req.user._id;
-        const filteredUsers= await User.find({_id: {$ne: userId}}).select("-password");
+export const getUserForSidebar = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const filteredUsers = await User.find({ _id: { $ne: userId } }).select("-password");
 
         //count no of messages not seen
-        const unseenMessages = {}
-        const promises=filteredUsers.map(async (user)=>{
-            const messages=await Message.find({senderId: user._id, receiverId: userId, seen: false})
-            if (messages.length>0){
-                unseenMessages[user._id]=messages.length;
+        const unseenMessages = {};
+        const promises = filteredUsers.map(async (user) => {
+            const messages = await Message.find({ senderId: user._id, receiverId: userId, seen: false });
+            if (messages.length > 0) {
+                unseenMessages[user._id] = messages.length;
             }
-        })
-        await Promise.call(promises);
-        res.json({success:true, users:filteredUsers, unseenMessages})
-    }catch(error){
+        });
+        await Promise.all(promises);
+        res.json({ success: true, users: filteredUsers, unseenMessages });
+    } catch (error) {
         console.log(error.message);
-        res.json({success: false, message: error.message})
+        res.json({ success: false, message: error.message });
     }
 }
 
@@ -36,7 +36,7 @@ export const getMessages= async(req, res)=>{
                 {senderId: myId, receiverId: selectedUserId},
                 {senderId: selectedUserId, receiverId: myId},
             ]
-        })
+        }).populate('senderId', 'profilePic fullname').populate('receiverId', 'profilePic fullname')
         await Message.updateMany({senderId: selectedUserId, receiverId: myId}, {seen: true});
         res.json({success:true, messages})
     }catch(error){

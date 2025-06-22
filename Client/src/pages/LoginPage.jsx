@@ -1,19 +1,58 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import assets from '../assets/assets'
+import { AuthContext } from '../../context/AuthContext'
+import toast from 'react-hot-toast'
 
 const LoginPage = () => {
   const [currState, setCurrentState]=useState("Sign up")
-  const [fullName, setFullName]=useState("")
+  const [fullname, setFullname]=useState("")
   const [email, setEmail]=useState("")
   const [password, setPassword]=useState("")
   const [bio, setBio]=useState("")
-  const [isDataSubmitted, setIsDataSubmitted]=useState(false);
+  const [isDataSubmitted, setIsDataSubmitted]=useState(false)
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
-  const onSubmitHandler=(event)=>{
+  const {login} = useContext(AuthContext);
+
+  const onSubmitHandler=async (event)=>{
     event.preventDefault();
-    if (currState==='Sign up' && !isDataSubmitted){
-      setIsDataSubmitted(true)
-      return;
+    if (currState==='Sign up'){
+      if(!isDataSubmitted){
+        if (!fullname || !email || !password) {
+          toast.error("Please fill all the required fields");
+          return;
+        }
+        setIsDataSubmitted(true)
+        return;
+      }
+      
+      if (!bio) {
+        toast.error("Please provide a bio");
+        return;
+      }
+
+      if (!termsAccepted) {
+        toast.error("Please accept the terms and conditions");
+        return;
+      }
+
+      try {
+        await login("signup", { fullname, email, password, bio });
+      } catch (error) {
+        toast.error(error.message || "Failed to create account");
+      }
+    } else {
+      // login path
+      if (!email || !password) {
+        toast.error("Please fill all the fields");
+        return;
+      }
+
+      try {
+        await login("login", { email, password });
+      } catch (error) {
+        toast.error(error.message || "Failed to login");
+      }
     }
   }
 
@@ -28,28 +67,67 @@ const LoginPage = () => {
           {isDataSubmitted && <img onClick={()=>setIsDataSubmitted(false)} src={assets.arrow_icon} className='w-5 cursor-pointer' alt="" />}
         </h2>
         {currState==="Sign up" && !isDataSubmitted && (
-          <input onChange={(e)=> setFullName(e.target.value)} value={fullName} type="text" placeholder='Full Name' className='p-2 border border-gray-500 rounded-md focus:outline-none' required/>
+          <input 
+            onChange={(e)=> setFullname(e.target.value)} 
+            value={fullname} 
+            type="text" 
+            placeholder='Full Name' 
+            className='p-2 border border-gray-500 rounded-md focus:outline-none' 
+            required
+          />
         )}
 
         {!isDataSubmitted && (
           <>
-          <input onChange={(e)=> setEmail(e.target.value)} value={email} type="email" className='p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500' placeholder='Email Address' required />
-          <input onChange={(e)=> setPassword(e.target.value)} value={password} type="password" className='p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500' placeholder='Password' required />
+          <input 
+            onChange={(e)=> setEmail(e.target.value)} 
+            value={email} 
+            type="email" 
+            className='p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500' 
+            placeholder='Email Address' 
+            required 
+          />
+          <input 
+            onChange={(e)=> setPassword(e.target.value)} 
+            value={password} 
+            type="password" 
+            className='p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500' 
+            placeholder='Password' 
+            required 
+          />
           </>
         )}
 
         {
           currState ==='Sign up' && isDataSubmitted && (
-            <textarea onChange={(e)=> setBio(e.target.value)} value={bio} className='p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500' placeholder='Provide a Short Bio...' rows={4}></textarea>
+            <textarea 
+              onChange={(e)=> setBio(e.target.value)} 
+              value={bio} 
+              className='p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500' 
+              placeholder='Provide a Short Bio...' 
+              rows={4}
+              required
+            ></textarea>
           )
         }
 
-        <button type='submit' className='py-3 bg-gradient-to-r from-purple-400 to-gray-800 text-white rounded-md cursor-pointer'>{currState==='Sign up'? "Create Account" : "Login Now"}</button>
-
         <div className='flex items-center gap-2 text-sm text-gray-500'> 
-          <input type="checkbox" />
+          <input 
+            type="checkbox" 
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
+            required
+          />
           <p>Agree to the terms of use & privacy policy</p>
         </div>
+
+        <button 
+          type='submit' 
+          className='py-3 bg-gradient-to-r from-purple-400 to-gray-800 text-white rounded-md cursor-pointer hover:opacity-90 transition-opacity'
+        >
+          {currState==='Sign up'? "Create Account" : "Login Now"}
+        </button>
+
         <div className='flex flex-col gap-2'>
           {currState==='Sign up'? (
             <p className='text-sm text-gray-600'>Already have an account? <span onClick={()=> {setCurrentState('Login'); setIsDataSubmitted(false)}} className='font-medium text-violet-500 cursor-pointer'>Login here</span></p>
