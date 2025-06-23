@@ -27,16 +27,21 @@ export const AuthProvider=({children})=>{
 
     //check if user is authenticated and if so, set the user data and connect the socket
     const checkAuth=async ()=>{
+        let authSuccess = false;
         try{
             const {data} = await axios.get("/api/user/check");
             if (data.success){
                 setAuthUser(data.user)
                 connectSocket(data.user)
+                authSuccess = true;
+            } else {
+                setAuthUser(null);
             }
         }catch(error){
-            toast.error(error.message)
+            setAuthUser(null);
         } finally {
-            setLoading(false);
+            // Ensure preloader is visible for at least 3 seconds
+            setTimeout(() => setLoading(false), 3000);
         }
     }
 
@@ -118,7 +123,15 @@ export const AuthProvider=({children})=>{
     }
     return(
         <AuthContext.Provider value={value}>
-            {loading ? <div style={{color: 'white', textAlign: 'center', marginTop: '2rem'}}>Loading...</div> : children}
+            {loading ? (
+                <div className="fixed inset-0 flex items-center justify-center min-h-screen w-full z-50" style={{background: `url('/bgImage.svg') center/cover no-repeat`, filter: 'blur(0px)'}}>
+                  <div className="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <span className="text-white text-xl font-semibold drop-shadow-lg">Loading...</span>
+                  </div>
+                </div>
+            ) : children}
         </AuthContext.Provider>
     )
 }
